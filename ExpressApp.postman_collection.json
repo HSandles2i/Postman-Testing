@@ -1,0 +1,305 @@
+{
+	"info": {
+		"_postman_id": "86de9c7e-9eb8-4990-b227-b1422bc84b80",
+		"name": "ExpressApp",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "30538428"
+	},
+	"item": [
+		{
+			"name": "Create Person",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const firstName = pm.variables.replaceIn('{{$randomFirstName}}');\r",
+							"const lastName = pm.variables.replaceIn('{{$randomLastName}}');\r",
+							"const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`;\r",
+							"const location = pm.variables.replaceIn('{{$randomCity}}, {{$randomCountry}}');\r",
+							" \r",
+							" pm.environment.set(\"firstName\", firstName);\r",
+							"pm.environment.set(\"lastName\", lastName);\r",
+							"pm.environment.set(\"email\", email);\r",
+							"pm.environment.set(\"location\", location);\r",
+							" \r",
+							"function getRandomDate(start, end) {\r",
+							"    return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));\r",
+							"}\r",
+							"const dob = getRandomDate(new Date(1950, 0, 1), new Date(2004, 0, 1)).toISOString().split('T')[0];\r",
+							"pm.environment.set(\"dob\", dob);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const responseData = pm.response.json();\r",
+							"\r",
+							"pm.test(\"Response status code is 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"if (responseData.insertedId) {\r",
+							"    pm.environment.set(\"id\", responseData.insertedId);\r",
+							"} else {\r",
+							"    console.error(\"No _id field found in the response.\");\r",
+							"}\r",
+							"pm.test(\"Response content type is application/json\", function () {\r",
+							"  pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"firstName\": \"{{firstName}}\",\r\n    \"lastName\": \"{{lastName}}\",\r\n    \"email\": \"{{email}}\",\r\n    \"location\": \"{{location}}\",\r\n    \"dob\": \"{{dob}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5002/api/test",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5002",
+					"path": [
+						"api",
+						"test"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Person",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const responseData = pm.response.json();\r",
+							"pm.test(\"First name is updated correctly\", function () {\r",
+							"    pm.expect(responseData.firstName).to.eql(pm.environment.get(\"firstName\"));\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Last name is updated correctly\", function () {\r",
+							"    pm.expect(responseData.lastName).to.eql(pm.environment.get(\"lastName\"));\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Email is updated correctly\", function () {\r",
+							"    pm.expect(responseData.email).to.eql(pm.environment.get(\"email\"));\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Location is updated correctly\", function () {\r",
+							"    pm.expect(responseData.location).to.eql(pm.environment.get(\"location\"));\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Date of Birth is updated correctly\", function () {\r",
+							"    pm.expect(responseData.dob).to.eql(pm.environment.get(\"dob\"));\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5002/api/test/{{id}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5002",
+					"path": [
+						"api",
+						"test",
+						"{{id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Change Person Details",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const location = pm.variables.replaceIn('{{$randomCity}}, {{$randomCountry}}');\r",
+							"pm.environment.set(\"location\", location);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const responseData = pm.response.json();\r",
+							"\r",
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Person Data Successfully Updated\", function () {\r",
+							"    pm.expect(responseData.message).to.eql(\"Successfully updated\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"1 Value Modified\", function () {\r",
+							"    pm.expect(responseData.modifiedCount).to.eql(1);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"firstName\": \"{{firstName}}\",\r\n    \"lastName\": \"{{lastName}}\",\r\n    \"dob\": \"{{dob}}\",\r\n    \"email\": \"{{email}}\",\r\n    \"location\": \"{{location}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5002/api/test/{{id}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5002",
+					"path": [
+						"api",
+						"test",
+						"{{id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Updated Person",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const responseData = pm.response.json();\r",
+							"\r",
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Location is updated correctly\", function () {\r",
+							"    pm.expect(responseData.location).to.eql(pm.environment.get(\"location\"));\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5002/api/test/{{id}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5002",
+					"path": [
+						"api",
+						"test",
+						"{{id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Person",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const responseData = pm.response.json();\r",
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"\r",
+							"});\r",
+							"\r",
+							"pm.test(\"1 Person Deleted\", function () {\r",
+							"    pm.expect(responseData.deletedCount).to.eql(1);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5002/api/test/{{id}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5002",
+					"path": [
+						"api",
+						"test",
+						"{{id}}"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

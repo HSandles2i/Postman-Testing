@@ -1,0 +1,34 @@
+version: '3.8'
+services:
+  mongodb:
+    container_name: express
+    image: mongo
+    expose:
+      - "27017"
+    ports:
+      - "27017:27017"
+    volumes:
+      - api:/data/db
+  backend:
+    build: ./server
+    tty: true
+    ports:
+      - "5002:5002"
+    volumes:
+      - logs:/app/logs
+      - ./server:/server
+    depends_on:
+      - mongodb
+  # frontend:
+  #   build: ./client
+  #   ports:
+  #     - 3000:3000
+  #   volumes:
+  #     - ./client/src:/app/src
+  #   stdin_open: true
+  #   tty: true
+  #   depends_on:
+  #     - backend
+volumes:
+  api:
+  logs:
